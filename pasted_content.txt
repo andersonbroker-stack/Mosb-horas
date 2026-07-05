@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MOSB Horas">
+<link rel="manifest" href="manifest.json">
+<title>MOSB · Controle de Horas</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0f0f0f;color:#e5e5e5;font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding-bottom:60px;min-height:100vh}
+.header{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 16px;position:sticky;top:0;z-index:100}
+.header-row{display:flex;justify-content:space-between;align-items:center}
+.header-title{font-size:13px;font-weight:700}
+.header-sub{font-size:10px;color:#737373;margin-top:2px}
+.saving{font-size:10px;color:#404040}
+
+/* AVATAR */
+.avatar{width:38px;height:38px;border-radius:50%;background:#2a2a2a;border:1px solid #404040;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar span{font-size:14px;font-weight:700;color:#a3a3a3}
+.avatar-badge{position:absolute;bottom:-2px;right:-2px;background:#1a1a1a;border:1px solid #404040;border-radius:50%;width:15px;height:15px;display:flex;align-items:center;justify-content:center;font-size:8px}
+.perfil-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.avatar-lg{width:64px;height:64px;border-radius:50%;background:#2a2a2a;border:1px solid #404040;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative}
+.avatar-lg img{width:100%;height:100%;object-fit:cover}
+.avatar-lg span{font-size:22px;font-weight:700;color:#a3a3a3}
+.link-btn{background:none;border:none;color:#93c5fd;font-size:11px;cursor:pointer;padding:0;text-decoration:underline}
+.link-btn.danger{color:#fca5a5}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:600px;background:#1a1a1a;border-top:1px solid #2a2a2a;display:flex;z-index:100}
+.nav-btn{flex:1;padding:10px 0 8px;background:none;border:none;color:#737373;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-btn.active{color:#fcd34d}
+.nav-icon{font-size:18px;line-height:1}
+
+/* ABAS INTERNAS */
+.tabs{display:flex;background:#1a1a1a;border-bottom:1px solid #2a2a2a}
+.tab{flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;color:#737373;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer}
+.tab.active{color:#fcd34d;border-bottom-color:#fcd34d}
+
+.content{padding:12px}
+
+/* TOTAIS */
+.total-card{background:#1c1917;border:1px solid #3d3010;border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.total-label{font-size:11px;color:#737373;text-transform:uppercase;letter-spacing:0.06em}
+.total-value{font-size:22px;font-weight:700;color:#fcd34d;font-family:monospace}
+.stat-row{display:flex;gap:8px;margin-bottom:8px}
+.stat-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 12px;flex:1;min-width:0}
+.stat-card.blue{background:#1e3a5f}
+.stat-card.green{background:#14532d}
+.stat-card.amber{background:#1c1917}
+.stat-card.red{background:#450a0a}
+.stat-card.cyan{background:#0c2a2a}
+.stat-label{font-size:10px;color:#737373;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px}
+.stat-val{font-size:14px;font-weight:700;font-family:monospace}
+.stat-val.blue{color:#93c5fd}
+.stat-val.green{color:#86efac}
+.stat-val.amber{color:#fcd34d}
+.stat-val.red{color:#fca5a5}
+.stat-val.cyan{color:#67e8f9}
+.stat-val.muted{color:#737373}
+
+/* BARRA DE COMPOSICAO */
+.comp-bar-wrap{margin:10px 0 4px}
+.comp-bar{height:8px;border-radius:4px;display:flex;overflow:hidden;gap:1px}
+.comp-seg{height:100%;transition:width 0.3s}
+.comp-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.comp-leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#737373}
+.comp-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* FORMULARIO */
+.form-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:14px;margin-bottom:12px}
+.form-title{font-size:11px;font-weight:700;color:#737373;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.form-group{margin-bottom:8px}
+label{font-size:10px;color:#737373;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;display:block}
+input[type=date],input[type=time],input[type=text],input[type=number]{background:#141414;border:1px solid #2a2a2a;border-radius:6px;color:#86efac;padding:8px 10px;font-size:13px;font-family:monospace;width:100%;outline:none;-webkit-appearance:none}
+input[type=text],input.obs{color:#737373}
+input.saldo-input{color:#93c5fd;font-size:16px;font-weight:700}
+input.param-input{color:#e5e5e5}
+.btn-add{width:100%;padding:11px 0;background:#14532d;border:1px solid #166534;border-radius:6px;color:#86efac;font-weight:700;font-size:13px;cursor:pointer}
+.btn-add:active{opacity:0.8}
+
+/* CICLO ATUAL */
+.ciclo-label{font-size:10px;color:#737373;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.ciclo-periodo{font-size:12px;color:#fcd34d;font-family:monospace;margin-bottom:12px}
+
+/* LISTA DIAS */
+.list-header{font-size:10px;color:#737373;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.empty{text-align:center;padding:30px 0;color:#404040;font-size:13px}
+.day-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;margin-bottom:8px;overflow:hidden}
+.day-header{padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.day-date{font-family:monospace;font-size:13px;font-weight:700}
+.day-badges{display:flex;align-items:center;gap:6px}
+.btn-remove{background:none;border:none;color:#404040;font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
+.btn-edit{background:none;border:none;color:#737373;font-size:15px;cursor:pointer;padding:0 4px;line-height:1}
+.btn-cancel{padding:11px 16px;background:#2a2a2a;border:1px solid #404040;border-radius:6px;color:#a3a3a3;font-weight:700;font-size:13px;cursor:pointer}
+.editing{border-color:#3d5a80!important;box-shadow:0 0 0 1px #3d5a80}
+.day-body{padding:0 12px 10px;border-top:1px solid #2a2a2a}
+.badges-row{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.badge{border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:0.03em;white-space:nowrap}
+.badge-muted{background:#222;color:#737373}
+.badge-cyan{background:#0c1f2e;color:#67e8f9}
+.badge-green{background:#14532d;color:#86efac}
+.badge-red{background:#450a0a;color:#fca5a5}
+.badge-blue{background:#1e3a5f;color:#93c5fd}
+.badge-amber{background:#1c1917;color:#fcd34d}
+.badge-purple{background:#2e1065;color:#c4b5fd}
+.day-obs{margin-top:6px;font-size:11px;color:#737373;font-style:italic}
+.day-folga{padding:6px 12px 10px;font-size:11px;color:#404040}
+
+/* HISTORICO */
+.hist-mes{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.hist-mes-header{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.hist-mes-nome{font-size:14px;font-weight:700;color:#e5e5e5}
+.hist-mes-total{font-size:14px;font-weight:700;color:#fcd34d;font-family:monospace}
+.hist-mes-body{padding:0 14px 12px;border-top:1px solid #2a2a2a;display:none}
+.hist-mes-body.open{display:block}
+.hist-stats{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.hist-stat{background:#222;border-radius:6px;padding:6px 10px;flex:1;min-width:80px}
+.hist-stat-label{font-size:9px;color:#737373;text-transform:uppercase;margin-bottom:2px}
+.hist-stat-val{font-size:12px;font-weight:700;font-family:monospace}
+.hist-edit-btn{margin-top:10px;width:100%;padding:8px 0;background:#1e3a5f;border:1px solid #1d4ed8;border-radius:6px;color:#93c5fd;font-size:12px;font-weight:700;cursor:pointer}
+
+/* MODAL EDITAR MES */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;justify-content:center;align-items:flex-start;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:14px 16px;border-bottom:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#1a1a1a;z-index:10}
+.modal-title{font-size:14px;font-weight:700}
+.modal-close{background:none;border:none;color:#737373;font-size:22px;cursor:pointer;line-height:1}
+.modal-body{padding:14px}
+
+/* PARAMS */
+.param-section{background:#1e3a5f;border:1px solid #1d4ed8;border-radius:10px;padding:14px;margin-bottom:14px}
+.param-note{font-size:10px;color:#737373;margin-top:6px}
+.calc-box{background:#1a1a1a;border-radius:8px;border:1px solid #2a2a2a;padding:12px;margin-top:6px}
+.calc-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.calc-label{font-size:12px;color:#737373}
+.calc-val{font-size:12px;color:#86efac;font-family:monospace}
+
+.section-gap{margin-bottom:14px}
+.divider{height:1px;background:#2a2a2a;margin:12px 0}
+
+/* TOGGLE LISTA/CALENDARIO */
+.view-toggle{display:flex;gap:8px;margin-bottom:10px}
+.view-toggle-btn{flex:1;padding:8px 0;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#737373;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;cursor:pointer}
+.view-toggle-btn.active{background:#1e3a5f;border-color:#1d4ed8;color:#93c5fd}
+
+/* CALENDARIO */
+.cal-wrap{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;margin-bottom:10px}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cal-nav-btn{background:none;border:none;color:#93c5fd;font-size:15px;cursor:pointer;padding:4px 10px}
+.cal-mes-nome{font-size:13px;font-weight:700;color:#e5e5e5;text-transform:capitalize}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-weekday{font-size:9px;color:#525252;text-align:center;text-transform:uppercase;font-weight:700;padding-bottom:2px}
+.cal-cell{aspect-ratio:1;border-radius:6px;background:#141414;border:1px solid #232323;display:flex;align-items:flex-start;justify-content:flex-start;padding:3px 4px;cursor:pointer;position:relative}
+.cal-cell.empty{background:none;border:none;cursor:default}
+.cal-num{font-size:10px;color:#737373;font-weight:700}
+.cal-hoje{box-shadow:0 0 0 2px #fcd34d inset}
+.cal-green{background:#14532d;border-color:#166534}
+.cal-green .cal-num{color:#86efac}
+.cal-green-he{background:#166534;border-color:#22c55e}
+.cal-green-he .cal-num{color:#bbf7d0}
+.cal-red{background:#450a0a;border-color:#7f1d1d}
+.cal-red .cal-num{color:#fca5a5}
+.cal-purple{background:#2e1065;border-color:#5b21b6}
+.cal-purple .cal-num{color:#c4b5fd}
+.cal-obs{background:#1c1917;border-color:#3d3010}
+.cal-obs .cal-num{color:#fcd34d}
+.cal-dom-vazio{background:#1a1010;border-color:#2a1a1a}
+.cal-sab-vazio{background:#1a1710;border-color:#2a2515}
+.cal-tag{position:absolute;bottom:2px;right:3px;font-size:7px;color:#fcd34d}
+.cal-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.cal-hint{font-size:10px;color:#525252;margin-top:8px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="avatar" id="avatar-header" onclick="document.getElementById('foto-input').click()">
+        <img id="avatar-img-header" style="display:none">
+        <span id="avatar-fallback-header">A</span>
+        <span class="avatar-badge">✏️</span>
+      </div>
+      <div>
+        <div class="header-title">MOSB · Controle de Horas</div>
+        <div class="header-sub">Anderson · Inspetor de Qualidade B</div>
+      </div>
+    </div>
+    <span class="saving" id="saving-indicator"></span>
+  </div>
+</div>
+<input type="file" accept="image/*" id="foto-input" style="display:none" onchange="handleFotoChange(this.files[0])">
+<input type="file" accept="application/json,.json" id="backup-input" style="display:none" onchange="importarBackupChange(this.files[0])">
+
+<!-- PAGINAS -->
+<div id="pg-registro" style="display:none"></div>
+<div id="pg-historico" style="display:none"></div>
+<div id="pg-parametros" style="display:none"></div>
+
+<!-- MODAL EDITAR MES -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Editar Mês</span>
+      <button class="modal-close" onclick="fecharModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-registro" onclick="setPage('registro')">
+    <span class="nav-icon">📋</span>Registro
+  </button>
+  <button class="nav-btn" id="nav-historico" onclick="setPage('historico')">
+    <span class="nav-icon">📊</span>Histórico
+  </button>
+  <button class="nav-btn" id="nav-parametros" onclick="setPage('parametros')">
+    <span class="nav-icon">⚙️</span>Parâmetros
+  </button>
+</div>
+
+<script>
+// ── ESTADO ─────────────────────────────────────────────────────────
+let params = {
+  salarioBase:2903.00, jornadaMensal:220, bancoHoras:18,
+  adicionalNoturno:0.35, heUtil:0.50, heDomingo:1.00,
+  ajudaCusto:50.21, toleranciaMin:5,
+  entradaDU:"14:40", saidaDU:"23:28",
+  entradaSAB:"10:40", saidaSAB:"19:40",
+  inicioNoturno:"22:00",
+  sabadoReferencia:""
+};
+
+// ciclos = { "Jun/2026": { dias:[], saldoInicial:X }, ... }
+// cicloAtual = { dias:[], saldoInicial:X, nome:"Jul/2026" }
+let ciclos = {};
+let cicloAtual = {
+  nome: "",
+  saldoInicial: -1.75,
+  dias: [
+    {id:1,data:"2026-06-22",entrada:"14:40",saida:"00:14",obs:""},
+    {id:2,data:"2026-06-23",entrada:"14:40",saida:"01:38",obs:""},
+    {id:3,data:"2026-06-24",entrada:"",saida:"",obs:"Feriado"},
+    {id:4,data:"2026-06-25",entrada:"14:40",saida:"01:10",obs:""},
+    {id:5,data:"2026-06-26",entrada:"14:40",saida:"01:27",obs:""},
+    {id:6,data:"2026-06-27",entrada:"",saida:"",obs:"Sábado folga"},
+    {id:7,data:"2026-06-28",entrada:"",saida:"",obs:"Domingo"},
+    {id:8,data:"2026-06-29",entrada:"16:25",saida:"23:56",obs:"Jogo do Brasil"},
+    {id:9,data:"2026-06-30",entrada:"12:59",saida:"23:58",obs:""},
+    {id:10,data:"2026-07-01",entrada:"13:00",saida:"23:55",obs:""},
+    {id:11,data:"2026-07-02",entrada:"13:01",saida:"23:50",obs:""},
+  ]
+};
+
+// ── UTILS ──────────────────────────────────────────────────────────
+const toMin = h => { if(!h)return null; const[a,b]=h.split(":").map(Number); return a*60+b; };
+const toHHMM = m => {
+  if(m===null||m===undefined)return"--:--";
+  const a=Math.abs(m),h=Math.floor(a/60),mm=Math.round(a%60);
+  return(m<0?"-":"")+String(h).padStart(2,"0")+":"+String(mm).padStart(2,"0");
+};
+const brl = v => v==null?"R$ --":v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const DIAS_SEM = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const MESES_NOME = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const diaSem = d => { if(!d)return""; const[y,m,dd]=d.split("-").map(Number); return DIAS_SEM[new Date(y,m-1,dd).getDay()]; };
+const isDom = d => { if(!d)return false; const[y,m,dd]=d.split("-").map(Number); return new Date(y,m-1,dd).getDay()===0; };
+const isSab = d => { if(!d)return false; const[y,m,dd]=d.split("-").map(Number); return new Date(y,m-1,dd).getDay()===6; };
+
+// Detecção automática de sábado alternado: a partir de UM sábado de referência
+// conhecido como "da escala", calcula por diferença de semanas (padrão par/ímpar)
+// se qualquer outro sábado também é da escala ou não.
+const isSabadoEscala = d => {
+  if(!d)return true;
+  const ref=params.sabadoReferencia;
+  if(!ref)return true; // sem referência configurada: comportamento antigo (todo sábado = escala)
+  const[ry,rm,rd]=ref.split("-").map(Number);
+  const[y,m,dd]=d.split("-").map(Number);
+  const refDate=new Date(ry,rm-1,rd);
+  const dt=new Date(y,m-1,dd);
+  const diffDias=Math.round((dt-refDate)/86400000);
+  const diffSemanas=diffDias/7;
+  if(Math.abs(diffSemanas-Math.round(diffSemanas))>0.01)return true; // não bate certo com semanas: fallback seguro
+  return Math.round(diffSemanas)%2===0;
+};
+
+// Retorna "Jun/2026" para uma data do ciclo (ciclo começa dia 21)
+const nomeCiclo = dataStr => {
+  if(!dataStr)return"";
+  const[y,m,d]=dataStr.split("-").map(Number);
+  // dia < 21 pertence ao ciclo do mês anterior
+  if(d<21){ const mm=m-1||12, yy=m===1?y-1:y; return MESES_NOME[mm-1]+"/"+yy; }
+  return MESES_NOME[m-1]+"/"+y;
+};
+
+const applyTol = (horaStr, contratualStr, tol) => {
+  if(!horaStr)return null;
+  const m=toMin(horaStr),c=toMin(contratualStr);
+  return Math.abs(m-c)<=tol?c:m;
+};
+
+const calcDia = (dia) => {
+  const{data,entrada,saida}=dia;
+  if(!data||!entrada||!saida)return null;
+  const dom=isDom(data),sab=isSab(data),tol=params.toleranciaMin;
+  const sabEscala=sab?isSabadoEscala(data):true;
+  const cem=dom||(sab&&!sabEscala); // conta tudo como HE 100%, não passa pelo banco
+  let entMin,saiMin;
+  if(cem){entMin=toMin(entrada);saiMin=toMin(saida);}
+  else if(sab){entMin=applyTol(entrada,params.entradaSAB,tol);saiMin=applyTol(saida,params.saidaSAB,tol);}
+  else{entMin=applyTol(entrada,params.entradaDU,tol);saiMin=applyTol(saida,params.saidaDU,tol);}
+  if(entMin===null||saiMin===null)return null;
+  let totalMin=saiMin-entMin; if(totalMin<0)totalMin+=1440;
+  if(!cem)totalMin-=60;
+  let espMin;
+  if(cem)espMin=0;
+  else if(sab)espMin=toMin(params.saidaSAB)-toMin(params.entradaSAB)-60;
+  else espMin=toMin(params.saidaDU)-toMin(params.entradaDU)-60;
+  const difMin=totalMin-espMin;
+  let notMin=0;
+  if(!cem){
+    const ns=toMin(params.inicioNoturno);
+    if(saiMin>=ns)notMin=saiMin-ns;
+    else if(saiMin<entMin)notMin=(1440-ns)+saiMin;
+  }
+  return{totalMin,espMin,difMin,notMin,dom,sab,sabEscala,cem};
+};
+
+const calcTodos = (dias, saldoInicial) => {
+  const hv=params.salarioBase/params.jornadaMensal;
+  const hn=hv*(1+params.adicionalNoturno);
+  const he50=hv*(1+params.heUtil);
+  const he100=hv*(1+params.heDomingo);
+  const bancoMin=params.bancoHoras*60;
+  let saldoBruto=saldoInicial*60;
+  return [...dias].sort((a,b)=>a.data.localeCompare(b.data)).map(dia=>{
+    const calc=calcDia(dia);
+    const saldoAnt=saldoBruto;
+    if(calc&&!calc.cem)saldoBruto+=calc.difMin;
+    const debitoMin=saldoBruto<0?Math.abs(saldoBruto):0;
+    const saldoMin=Math.max(0,saldoBruto);
+    let he50Min=0;
+    if(calc&&!calc.cem&&calc.difMin>0){
+      const excH=Math.max(0,saldoBruto-bancoMin);
+      const excA=Math.max(0,saldoAnt-bancoMin);
+      he50Min=Math.max(0,excH-excA);
+    }
+    const heDomMin=calc&&calc.cem?calc.totalMin:0;
+    const valHE=(he50Min/60)*he50+(heDomMin/60)*he100;
+    const valNot=calc?(calc.notMin/60)*(hn-hv):0;
+    return{...dia,calc,saldoBruto,debitoMin,saldoMin,he50Min,heDomMin,valHE,valNot};
+  });
+};
+
+const totalsCiclo = (diasCalc) => {
+  const totalHE=diasCalc.reduce((s,d)=>s+(d.valHE||0),0);
+  const totalNot=diasCalc.reduce((s,d)=>s+(d.valNot||0),0);
+  const diasTrab=diasCalc.filter(d=>d.entrada&&d.saida).length;
+  const totalAjuda=diasTrab*params.ajudaCusto;
+  const totalEst=params.salarioBase+totalHE+totalNot+totalAjuda;
+  const ultimo=diasCalc[diasCalc.length-1];
+  const saldoAtual=ultimo?ultimo.saldoMin:0;
+  const debitoAtual=ultimo?ultimo.debitoMin:0;
+  const saldoBrutoFinal=ultimo?ultimo.saldoBruto:0;
+  return{totalHE,totalNot,totalAjuda,totalEs
